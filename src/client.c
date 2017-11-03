@@ -11,16 +11,19 @@
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
+#include "GLT/glt.h"
 #include "readfile.h"
+#include "shader.h"
 
-struct vec3f { GLfloat x, y, z; };
-struct box {
-	struct vec3f center;
-	GLfloat width, height, depth;
+struct attrib {
+	GLint   at_attrib;
+	GLfloat at_data[];
 };
 
-struct box objects[] = {
-	{.center = {0.0f, 0.0f, 0.0f}, .width=1.0f, .height=1.0f, .depth=1.0f},
+struct object {
+	GLuint         obj_vao;
+	size_t         obj_attribs_count;
+	struct attrib *obj_attribs;
 };
 
 GLfloat verts[] = {
@@ -65,6 +68,7 @@ int main()
 	GLuint vert, frag, program;
 	const char *vertsrc, *fragsrc;
 
+
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 
@@ -80,26 +84,26 @@ int main()
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
-	vert = glCreateShader(GL_VERTEX_SHADER);
-	vertsrc = readfile("shaders/null.vert");
-	if (vertsrc == NULL) exit(EXIT_FAILURE);
-	glShaderSource(vert, 1, &vertsrc, NULL);
-	glCompileShader(vert);
-	free((void *)vertsrc);
+	//vert = glCreateShader(GL_VERTEX_SHADER);
+	//vertsrc = readfile("shaders/null.vert");
+	//if (vertsrc == NULL) exit(EXIT_FAILURE);
+	//glShaderSource(vert, 1, &vertsrc, NULL);
+	//glCompileShader(vert);
+	//free((void *)vertsrc);
 
-	frag = glCreateShader(GL_FRAGMENT_SHADER);
-	fragsrc = readfile("shadersnull.frag");
-	if (fragsrc == NULL) exit(EXIT_FAILURE);
-	glShaderSource(frag, 1, &fragsrc, NULL);
-	glCompileShader(frag);
-	free((void *)fragsrc);
+	//frag = glCreateShader(GL_FRAGMENT_SHADER);
+	//fragsrc = readfile("shaders/null.frag");
+	//if (fragsrc == NULL) exit(EXIT_FAILURE);
+	//glShaderSource(frag, 1, &fragsrc, NULL);
+	//glCompileShader(frag);
+	//free((void *)fragsrc);
 
-	program = glCreateProgram();
-	glAttachShader(program, vert);
-	glAttachShader(program, frag);
-	glLinkProgram(program);
+	//program = glCreateProgram();
+	//glAttachShader(program, vert);
+	//glAttachShader(program, frag);
+	//glLinkProgram(program);
+    program = loadprogram("null");
 	glUseProgram(program);
-
 
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);

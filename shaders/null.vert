@@ -1,6 +1,6 @@
 #version 330 core
 
-in vec3 position;
+in vec2 position;
 in vec3 colour;
 
 out vec3 Colour;
