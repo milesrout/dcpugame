@@ -14,7 +14,7 @@ SRCS      := $(shell find src -name *.c)
 OBJS      := $(SRCS:%=build/%.o)
 DEPS      := $(OBJS:.o=.d)
 
-INCS      := $(addprefix -I,$(shell find ./include -type d))
+INCS      := -I./include #$(addprefix -I,$(shell find ./include -type d))
 
 CFLAGS    += $(PC_CFLAGS) $(INCS) -MMD -MP
 LDLIBS    += $(PC_LIBS)
@@ -28,9 +28,12 @@ build/%.c.o: %.c
 
 .PHONY: clean syntastic
 clean:
-	rm build/$(TARGET) $(OBJS) $(DEPS)
+	rm -f build/$(TARGET) $(OBJS) $(DEPS)
 
 syntastic:
 	echo $(CFLAGS) | tr ' ' '\n' > .syntastic_c_config
+
+release:
+	-$(MAKE) "BUILD=release"
 
 -include $(DEPS)
