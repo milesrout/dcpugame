@@ -1,12 +1,10 @@
 #version 330 core
 
-in vec2 position;
-in vec3 colour;
-
-out vec3 Colour;
+in vec3 position;
+in vec3 normal;
+in vec3 texcoords;
 
 void main()
 {
-	Colour = colour;
-	gl_Position = vec4(position, 0.0, 1.0);
+	gl_Position = vec4(position, 1.0);
 }

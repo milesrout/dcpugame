@@ -17,10 +17,10 @@ DEPS      := $(OBJS:.o=.d)
 INCS      := -I./include #$(addprefix -I,$(shell find ./include -type d))
 
 CFLAGS    += $(PC_CFLAGS) $(INCS) -MMD -MP
-LDLIBS    += $(PC_LIBS)
+LDLIBS    += $(PC_LIBS) -lm
 
 build/$(TARGET): $(OBJS)
-	$(CC) $(OBJS) -o $@ $(LDFLAGS) $(LDLIBS)
+	$(CC) -g $(OBJS) -o $@ $(LDFLAGS) $(LDLIBS)
 
 build/%.c.o: %.c
 	mkdir -p $(dir $@)

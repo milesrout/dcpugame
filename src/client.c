@@ -1,3 +1,5 @@
+#include <unistd.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,7 +7,6 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 // http://glad.dav1d.de/#profile=core&specification=gl&api=gl%3D4.3&api=gles1%3Dnone&api=gles2%3Dnone&api=glsc2%3Dnone&language=c
 #include "glad/glad.h"
@@ -13,62 +14,23 @@
 
 #include "GLT/glt.h"
 #include "readfile.h"
-#include "shader.h"
 
-struct attrib {
-	GLint   at_attrib;
-	GLfloat at_data[];
-};
-
-struct object {
-	GLuint         obj_vao;
-	size_t         obj_attribs_count;
-	struct attrib *obj_attribs;
-};
-
-GLfloat verts[] = {
-	/* front */
-	-1.0f, -1.0f, -1.0f,   1.0, 0.0, 0.0,
-	 1.0f, -1.0f, -1.0f,   0.0, 1.0, 0.0, 
-	 1.0f,  1.0f, -1.0f,   0.0, 0.0, 1.0, 
-	-1.0f,  1.0f, -1.0f,   1.0, 1.0, 1.0, 
-	/* back */
-	-1.0f, -1.0f, -3.0f,   1.0, 0.0, 0.0, 
-	 1.0f, -1.0f, -3.0f,   0.0, 1.0, 0.0, 
-	 1.0f,  1.0f, -3.0f,   0.0, 0.0, 1.0, 
-	-1.0f,  1.0f, -3.0f,   1.0, 1.0, 1.0, 
-};
-
-GLushort elems[] = {
-	0, 1, 2,
-	2, 3, 0,
-
-	1, 5, 6,
-	6, 2, 1,
-
-	7, 6, 5,
-	5, 4, 7,
-
-	4, 0, 3,
-	3, 7, 4,
-
-	4, 5, 1,
-	1, 0, 4,
-
-	3, 2, 6,
-	6, 7, 3,
-};
+void error_callback(int error, const char *description)
+{
+	fprintf(stderr, "Fatal GLFW Error: %s\n", description);
+	abort();
+}
 
 int main()
 {
 	GLFWwindow *window;
 	GLint posattrib, colattrib;
 	GLint ibosize;
-	GLuint vao, vbo, ebo;
-	GLuint vert, frag, program;
-	const char *vertsrc, *fragsrc;
+	GLuint vao, vbo, ebo, program;
+	GLTshape *shape;
+	GLint res;
 
-
+	glfwSetErrorCallback(&error_callback);
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 
@@ -81,45 +43,22 @@ int main()
 	glfwMakeContextCurrent(window);
 	gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+	res = gltLoadProgram(&program, "null");
+	if (res == -1) {
+		gltPrintErrors("gltLoadProgram");
+		exit(EXIT_FAILURE);
+	}
 
-	//vert = glCreateShader(GL_VERTEX_SHADER);
-	//vertsrc = readfile("shaders/null.vert");
-	//if (vertsrc == NULL) exit(EXIT_FAILURE);
-	//glShaderSource(vert, 1, &vertsrc, NULL);
-	//glCompileShader(vert);
-	//free((void *)vertsrc);
+	res = gltPrintErrors("glUseProgram");
+	if (res == -1) {
+		exit(EXIT_FAILURE);
+	}
 
-	//frag = glCreateShader(GL_FRAGMENT_SHADER);
-	//fragsrc = readfile("shaders/null.frag");
-	//if (fragsrc == NULL) exit(EXIT_FAILURE);
-	//glShaderSource(frag, 1, &fragsrc, NULL);
-	//glCompileShader(frag);
-	//free((void *)fragsrc);
-
-	//program = glCreateProgram();
-	//glAttachShader(program, vert);
-	//glAttachShader(program, frag);
-	//glLinkProgram(program);
-    program = loadprogram("null");
-	glUseProgram(program);
-
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-
-	posattrib = glGetAttribLocation(program, "position");
-	glVertexAttribPointer(posattrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
-	glEnableVertexAttribArray(posattrib);
-
-	colattrib = glGetAttribLocation(program, "colour");
-	glVertexAttribPointer(colattrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(colattrib);
-
-	glGenBuffers(1, &ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elems), elems, GL_STATIC_DRAW);
+	res = gltLoadShape(&shape, "cube");
+	if (res == -1) {
+		gltPrintErrors("gltLoadShape");
+		exit(EXIT_FAILURE);
+	}
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -127,9 +66,9 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-		glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &ibosize);
-		glDrawElements(GL_TRIANGLES, ibosize / sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+		glBindVertexArray(shape->sh_vao);
+		glUseProgram(program);
+		glDrawArrays(GL_TRIANGLES, 0, 12);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

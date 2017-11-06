@@ -8,14 +8,17 @@
 #include "GLT/shader.h"
 #include "GLT/program.h"
 
-static void gltPrintProgramInfoLog(GLuint shader)
+static void gltPrintProgramInfoLog(GLuint program)
 {
 	GLint len, res;
 	GLchar *log;
 
-	glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &len);
+	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
 	res = gltPrintErrors("glGetProgramiv");
 	if (res == -1)
+		return;
+
+	if (len == 0)
 		return;
 
 	log = malloc(len);
@@ -24,9 +27,9 @@ static void gltPrintProgramInfoLog(GLuint shader)
 		return;
 	}
 
-	glGetProgramInfoLog(shader, len, NULL, log);
+	glGetProgramInfoLog(program, len, NULL, log);
 	res = gltPrintErrors("glGetProgramInfoLog");
-	if (res != -1) 
+	if (res == -1) 
 		goto error;
 
 	log[len] = '\0';
@@ -45,15 +48,16 @@ GLint gltLinkProgram(GLuint program)
 	char *log;
 
 	glLinkProgram(program);
+	res = gltPrintErrors("glLinkProgram");
+	if (res == -1)
+		return res;
 
-	glGetProgramiv(program, GL_COMPILE_STATUS, &status);
-	if (status == GL_TRUE)
-		res = 0;
+	glGetProgramiv(program, GL_LINK_STATUS, &status);
+	res = gltPrintErrors("glGetProgram");
+	if (status == GL_FALSE)
+		res = -1;
 
 	gltPrintProgramInfoLog(program);
-error:
-	res = gltPrintErrors("glCompileShader");
-end:
 	return res;
 }
 
@@ -87,7 +91,10 @@ GLint gltLoadProgram(GLuint *program, const char *name)
 			goto error3;
 	}
 
-	glLinkProgram(*program);
+	res = gltLinkProgram(*program);
+	if (res == -1)
+		goto error3;
+
 	goto error1;
 
 error3:
