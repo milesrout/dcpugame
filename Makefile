@@ -22,8 +22,12 @@ LDLIBS    += $(PC_LIBS) -lm
 build/$(TARGET): $(OBJS)
 	$(CC) -g $(OBJS) -o $@ $(LDFLAGS) $(LDLIBS)
 
+build/%.c.s: %.c
+	@mkdir -p $(dir $@)
+	$(CC) -S $(CFLAGS) $< -o $@
+
 build/%.c.o: %.c
-	mkdir -p $(dir $@)
+	@mkdir -p $(dir $@)
 	$(CC) -c $(CFLAGS) $< -o $@
 
 .PHONY: clean syntastic

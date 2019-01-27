@@ -5,4 +5,5 @@
 #include "GLT/shader.h"
 #include "GLT/program.h"
 #include "GLT/shape.h"
+#include "GLT/texture.h"
 #endif /* _glt_h_ */

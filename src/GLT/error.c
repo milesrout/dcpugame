@@ -21,7 +21,8 @@ const GLchar *gltErrorString(GLenum err)
         EXPAND(GL_TABLE_TOO_LARGE);
 #undef EXPAND
     }
-    return NULL;
+
+    return "unknown error";
 }
 
 
@@ -38,7 +39,11 @@ GLint gltPrintErrorsImpl(const GLchar *source, const GLchar *file, int line)
         else
             fprintf(stderr, "(%s:%d): OpenGL Error: %s\n", file, line, gltErrorString(err));
 
-        // This error is non-recoverable.
+	/*
+	 * This error is currently non-recoverable. In future provision should
+	 * be made for it to be recoverable through the disposal of unnecessary
+	 * memory consuming resources like caches.
+	 */
         if (err == GL_OUT_OF_MEMORY)
             abort();
     }

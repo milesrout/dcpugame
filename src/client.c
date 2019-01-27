@@ -21,6 +21,7 @@ void error_callback(int error, const char *description)
 	abort();
 }
 
+int test_mat(void);
 int main()
 {
 	GLFWwindow *window;
@@ -29,6 +30,8 @@ int main()
 	GLuint vao, vbo, ebo, program;
 	GLTshape *shape;
 	GLint res;
+
+	test_mat();
 
 	glfwSetErrorCallback(&error_callback);
 	if (!glfwInit())
